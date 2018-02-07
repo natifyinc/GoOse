@@ -295,7 +295,6 @@ func (c *Cleaner) Clean(docToClean *goquery.Document) *goquery.Document {
 	docToClean = c.removeTags(docToClean, &[]string{"nav", "footer", "aside", "cite"})
 	docToClean = c.cleanParaSpans(docToClean)
 
-
 	docToClean = c.convertDivsToParagraphs(docToClean, "div")
 
 	docToClean = c.convertDivsToParagraphs(docToClean, "span")
@@ -541,15 +540,15 @@ func (c *Cleaner) convertDivsToParagraphs(doc *goquery.Document, domType string)
 			})
 
 			/*
-			newNode := new(html.Node)
-			newNode.Type = html.ElementNode
-			newNode.Data = strings.Join(replacementText, "")
-			newNode.DataAtom = atom.P
+				newNode := new(html.Node)
+				newNode.Type = html.ElementNode
+				newNode.Data = strings.Join(replacementText, "")
+				newNode.DataAtom = atom.P
 			*/
-/*
-			replacementText = strings.Replace(replacementText, "=C3=A8", "è")
-			replacementText = strings.Replace(replacementText, "=C3=A9", "é")
-*/
+			/*
+				replacementText = strings.Replace(replacementText, "=C3=A8", "è")
+				replacementText = strings.Replace(replacementText, "=C3=A9", "é")
+			*/
 			div.First().BeforeHtml("<p>" + strings.Join(replacementText, "") + "</p>")
 
 			for s := nodesToRemove.Front(); s != nil; s = s.Next() {

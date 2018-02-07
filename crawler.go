@@ -2,7 +2,6 @@ package goose
 
 import (
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"strings"
@@ -83,8 +82,12 @@ func (c Crawler) GetCharset(document *goquery.Document) string {
 // Preprocess fetches the HTML page if needed, converts it to UTF-8 and applies
 // some text normalisation to guarantee better results when extracting the content
 func (c *Crawler) Preprocess() (*goquery.Document, error) {
+	var err error
 	if c.RawHTML == "" {
-		c.RawHTML = c.fetchHTML(c.url, c.config.timeout)
+		c.RawHTML, err = c.fetchHTML(c.url, c.config.timeout)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if c.RawHTML == "" {
 		return nil, nil
@@ -185,7 +188,7 @@ func (c Crawler) addSpacesBetweenTags(text string) string {
 	return strings.Replace(text, "</p>", "</p>\n", -1)
 }
 
-func (c *Crawler) fetchHTML(u string, timeout time.Duration) string {
+func (c *Crawler) fetchHTML(u string, timeout time.Duration) (string, error) {
 	cookieJar, _ := cookiejar.New(nil)
 	client := &http.Client{
 		Jar:     cookieJar,
@@ -193,26 +196,24 @@ func (c *Crawler) fetchHTML(u string, timeout time.Duration) string {
 	}
 	req, err := http.NewRequest("GET", u, nil)
 	if err != nil {
-		log.Println(err.Error())
-		return ""
+		return "", err
 	}
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.91 Safari/534.30")
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err.Error())
-		return ""
+		return "", err
 	}
 	contents, err := ioutil.ReadAll(resp.Body)
 	if err == nil {
 		c.RawHTML = string(contents)
 	} else {
-		log.Println(err.Error())
+		return "", err
 	}
 	err = resp.Body.Close()
 	if err != nil {
-		log.Println(err.Error())
+		return "", err
 	}
 
-	return c.RawHTML
+	return c.RawHTML, nil
 }
